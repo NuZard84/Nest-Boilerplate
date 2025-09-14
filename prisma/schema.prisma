@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String?
+  picture      String?
+  refreshToken String?
+  googleId     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  providers UserProvider[] // subscriptions / connected apps
+  alerts    Alert[]
+}
+
+model UserProvider {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  provider     Provider
+  providerId   String? // OAuth ID if connected
+  accessToken  String?
+  refreshToken String?
+  scopes       String? // comma-separated or JSON
+  enabled      Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, provider])
+  @@index([userId])
+}
+
+model Alert {
+  id        Int      @id @default(autoincrement())
+  title     String
+  message   String
+  type      Provider
+  seen      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([type])
+}
+
+enum Provider {
+  google
+  gmail
+  calendar
+  github
+  slack
+  jira
+  system
+}
