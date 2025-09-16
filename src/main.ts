@@ -11,6 +11,9 @@ const requiredEnvVars = [
   'GOOGLE_CLIENT_SECRET',
   'DATABASE_URL',
   'NODE_ENV',
+  'TWILIO_ACC_SID',
+  'TWILIO_AUTH_TOKEN',
+  'TWILIO_PHONE_NUMBER',
 ];
 
 for (const envVar of requiredEnvVars) {
@@ -24,22 +27,10 @@ async function bootstrap() {
 
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  const allowedOrigins = process.env.FRONTEND_URL
-    ? process.env.FRONTEND_URL.split(',').map((url) => url.trim())
-    : ['http://localhost:3000'];
-
+  // Simplified CORS configuration for development
   app.enableCors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, Postman, etc.)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error('Not allowed by CORS'), false);
-    },
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    origin: true, // Allow all origins in development
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     credentials: true,
     optionsSuccessStatus: 200,
   });
@@ -53,5 +44,6 @@ async function bootstrap() {
   );
 
   await app.listen(process.env.PORT ?? 3000);
+  console.log(`🚀 Server running on port ${process.env.PORT ?? 3000}`);
 }
 bootstrap();

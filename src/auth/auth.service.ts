@@ -36,7 +36,12 @@ export class AuthService {
         this.logger.log(`New user created: ${email}`);
       }
 
-      const payload = { sub: user.id, email: user.email };
+      const payload = {
+        sub: user.id,
+        email: user.email ?? null,
+        phoneNumber: user.phoneNumber ?? null,
+        isPhoneVerified: user.isPhoneVerified ?? false,
+      };
 
       const accessToken = this.jwtService.sign(payload, {
         expiresIn: String(process.env.EXPIRE_ACCESS_TOKEN),

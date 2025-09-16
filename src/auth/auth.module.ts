@@ -5,6 +5,8 @@ import { GoogleStrategy } from './google/google.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
+import { PhonenumService } from './phonenum/phonenum.service';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
@@ -15,8 +17,10 @@ import { JwtStrategy } from './jwt.strategy';
         expiresIn: String(process.env.EXPIRE_ACCESS_TOKEN),
       },
     }),
+    RedisModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, GoogleStrategy, JwtStrategy],
+  providers: [AuthService, GoogleStrategy, JwtStrategy, PhonenumService],
+  exports: [PhonenumService],
 })
 export class AuthModule {}

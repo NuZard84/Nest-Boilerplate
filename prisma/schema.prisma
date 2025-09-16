@@ -8,50 +8,110 @@ datasource db {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique
-  name         String?
-  picture      String?
-  refreshToken String?
-  googleId     String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String   @id @default(uuid())
+  email           String?  @unique
+  phoneNumber     String?  @unique
+  isPhoneVerified Boolean  @default(false)
+  name            String?
+  picture         String?
+  refreshToken    String? // app’s own refresh token if you need session rotation
+  googleId        String? // primary Google account id
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  providers UserProvider[] // subscriptions / connected apps
+  providers UserProvider[] // OAuth linked providers
   alerts    Alert[]
 }
 
 model UserProvider {
-  id           Int      @id @default(autoincrement())
-  userId       Int
-  provider     Provider
-  providerId   String? // OAuth ID if connected
-  accessToken  String?
-  refreshToken String?
-  scopes       String? // comma-separated or JSON
-  enabled      Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String    @id @default(uuid())
+  userId          String
+  provider        Provider
+  providerUserId  String? // external user id (from provider)
+  accessTokenEnc  String? // encrypted short-lived token
+  refreshTokenEnc String? // encrypted refresh token
+  scopes          Json? // JSON array instead of string for easier queries
+  expiresAt       DateTime? // access token expiry
+  enabled         Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id])
 
+  // relations to provider-specific metadata
+  gmail    GmailProvider?
+  calendar CalendarProvider?
+  github   GithubProvider?
+  slack    SlackProvider?
+  jira     JiraProvider?
+
   @@unique([userId, provider])
   @@index([userId])
+  @@index([provider, providerUserId])
 }
 
 model Alert {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   title     String
   message   String
   type      Provider
   seen      Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([type])
+}
+
+model GmailProvider {
+  id             String    @id @default(uuid())
+  userProviderId String    @unique
+  watchId        String?
+  watchChannelId String?
+  watchExpiresAt DateTime?
+  lastHistoryId  String?
+
+  provider UserProvider @relation(fields: [userProviderId], references: [id])
+}
+
+model CalendarProvider {
+  id             String    @id @default(uuid())
+  userProviderId String    @unique
+  watchId        String?
+  watchChannelId String?
+  watchExpiresAt DateTime?
+  syncToken      String?
+
+  provider UserProvider @relation(fields: [userProviderId], references: [id])
+}
+
+model GithubProvider {
+  id             String  @id @default(uuid())
+  userProviderId String  @unique
+  scope          String?
+
+  provider UserProvider @relation(fields: [userProviderId], references: [id])
+}
+
+model SlackProvider {
+  id             String  @id @default(uuid())
+  userProviderId String  @unique
+  teamId         String?
+  botUserId      String?
+  scope          String?
+
+  provider UserProvider @relation(fields: [userProviderId], references: [id])
+}
+
+model JiraProvider {
+  id             String  @id @default(uuid())
+  userProviderId String  @unique
+  cloudId        String?
+  scope          String?
+
+  provider UserProvider @relation(fields: [userProviderId], references: [id])
 }
 
 enum Provider {
