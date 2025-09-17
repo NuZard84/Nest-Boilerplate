@@ -19,7 +19,7 @@ export class PhonenumService {
   private readonly OTP_TTL = 600;
   private readonly COOLDOWN_TTL = 60;
   private readonly OTP_LENGTH = 6;
-  private readonly MAX_OTP_REQUESTS_PER_HOUR = 6;
+  private readonly MAX_OTP_REQUESTS_PER_HOUR = 5;
 
   constructor(
     private redis: RedisService,
@@ -66,6 +66,7 @@ export class PhonenumService {
       );
     }
   }
+
   async sendOTP(
     phoneNumber: string,
   ): Promise<{ success: boolean; message: string; normalizedPhone?: string }> {
