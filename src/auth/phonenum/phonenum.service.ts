@@ -3,6 +3,7 @@ import {
   Injectable,
   Logger,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import * as twilio from 'twilio';
 import * as crypto from 'crypto';
@@ -218,7 +219,11 @@ export class PhonenumService {
 
       this.logger.log(`User authenticated via phone: ${num}`);
 
-      return { user, accessToken, refreshToken };
+      return {
+        user: { ...user, isPhoneVerified: true },
+        accessToken,
+        refreshToken,
+      };
     } catch (error) {
       this.logger.error('Error verifying OTP:', error);
 

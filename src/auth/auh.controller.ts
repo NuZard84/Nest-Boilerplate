@@ -51,7 +51,6 @@ export class AuthController {
     }
   }
 
-  // Phone authentication endpoints
   @Post('phone/send-otp')
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   async sendOtp(@Body() body: SendOtpDto) {
